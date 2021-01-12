@@ -10,11 +10,11 @@
 
 @implementation spf
 
-- (void) startCalibration:(CDVInvokedUrlCommand*)command
+- (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command
 {
     [[MicrophoneSignalProcess getInstance] startCalibration:self];
     
-    NSInteger status = [[MicrophoneSignalProcess onFinish] status]
+    NSInteger status = [[MicrophoneSignalProcess onFinish] status];
     
     if (status == 0) {
         CDVPluginResult* result = [CDVPluginResult
@@ -28,7 +28,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) stopCalibration:(CDVInvokedUrlCommand*)command
+- (void) stopCalibrationSRP:(CDVInvokedUrlCommand*)command
 {
     [[MicrophoneSignalProcess getInstance] stopCalibration];
     
@@ -38,11 +38,11 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) startMeasurement:(CDVInvokedUrlCommand*)command
+- (void) startMeasurementSRP:(CDVInvokedUrlCommand*)command
 {
     [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
     
-    NSInteger peak = [[MicrophoneSignalProcess onResult] peak]
+    NSInteger peak = [[MicrophoneSignalProcess onResult] peak];
     
     if (status == 0) {
         CDVPluginResult* result = [CDVPluginResult
@@ -57,7 +57,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) stopMeasurement:(CDVInvokedUrlCommand*)command
+- (void) stopMeasurementSRP:(CDVInvokedUrlCommand*)command
 {
     
     [[MicrophoneSignalProcess getInstance] stopAnalyze];

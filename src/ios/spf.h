@@ -12,9 +12,9 @@
 
 @interface spf : NSObject
 
-- (void) startCalibration:(CDVInvokedUrlCommand*)command;
-- (void) stopCalibration:(CDVInvokedUrlCommand*)command;
-- (void) startMeasurement:(CDVInvokedUrlCommand*)command;
-- (void) stopMeasurement:(CDVInvokedUrlCommand*)command;
+- (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command;
+- (void) stopCalibrationSRP:(CDVInvokedUrlCommand*)command;
+- (void) startMeasurementSRP:(CDVInvokedUrlCommand*)command;
+- (void) stopMeasurementSRP:(CDVInvokedUrlCommand*)command;
 
 @end
