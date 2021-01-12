@@ -1,0 +1,28 @@
+{
+    "name": "cordova-plugin-spf",
+    "version": "0.1.0",
+    "description": "A cordova plugin for SPF library",
+    "cordova": {
+        "id": "cordova-plugin-spf",
+        "platforms": [
+            "ios"
+        ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kevinchtsang/cordova-plugin-spf"
+    },
+    "keywords": [
+        "cordova",
+        "plugin",
+        "hello",
+        "ecosystem:cordova",
+        "cordova-android"
+    ],
+    "author": "Kevin Tsang",
+    "license": "Apache-2",
+    "bugs": {
+        "url": "https://github.com/kevinchtsang/cordova-plugin-spf/issues"
+    },
+    "homepage": "https://github.com/kevinchtsang/cordova-plugin-spf#readme"
+}
