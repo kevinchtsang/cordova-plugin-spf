@@ -10,7 +10,7 @@
 #import "MicrophoneSignalProcess.h"
 #import <Cordova/CDV.h>
 
-@interface spf : NSObject
+@interface spf : CDVPlugin //<OnCalibrationFinished,OnPeakFound,OnModeChanges>
 
 - (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command;
 - (void) stopCalibrationSRP:(CDVInvokedUrlCommand*)command;

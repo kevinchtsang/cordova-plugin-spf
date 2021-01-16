@@ -14,15 +14,18 @@
 {
     [[MicrophoneSignalProcess getInstance] startCalibration:self];
     
-    NSInteger status = [[MicrophoneSignalProcess onFinish] status];
+    id <OnCalibrationFinished> onFinish;
     
-    if (status == 0) {
-        CDVPluginResult* result = [CDVPluginResult
-                                   resultWithStatus:CDVCommandStatus_ERROR
-                                   messageAsString:@"Error in Calibration"];
+//    int status = [onFinish status];
+    
+    CDVPluginResult* result;
+    if (onFinish == 0) {
+        result = [CDVPluginResult
+                  resultWithStatus:CDVCommandStatus_ERROR
+                  messageAsString:@"Error in Calibration"];
     } else {
-        CDVPluginResult* result = [CDVPluginResult
-                                   resultWithStatus:CDVCommandStatus_OK];
+        result = [CDVPluginResult
+                  resultWithStatus:CDVCommandStatus_OK];
     }
     
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -42,16 +45,17 @@
 {
     [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
     
-    NSInteger peak = [[MicrophoneSignalProcess onResult] peak];
+    id <OnPeakFound> peak;
     
-    if (status == 0) {
-        CDVPluginResult* result = [CDVPluginResult
-                                   resultWithStatus:CDVCommandStatus_ERROR
-                                   messageAsString:@"Error in Measurement"];
+    CDVPluginResult* result;
+    if (peak == 0) {
+        result = [CDVPluginResult
+                  resultWithStatus:CDVCommandStatus_ERROR
+                  messageAsString:@"Error in Measurement"];
     } else {
-        CDVPluginResult* result = [CDVPluginResult
-                                   resultWithStatus:CDVCommandStatus_OK
-                                   messageAsString:peak];
+        result = [CDVPluginResult
+                  resultWithStatus:CDVCommandStatus_OK
+                  messageAsString:peak];
     }
     
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
