@@ -16,3 +16,9 @@ com.example.spf
 │   └───WaveWriter.h
 ```
 If running with xcode, add the `libSPF-iOS-Lib.a` to "Link Binary with Library" under the "Build Phases" settings of your xcode app.
+
+If cordova is not compling, it may be due to iOS version. Try to use an older version, for example iOS 6.0.0
+```
+cordova platform remove ios
+cordova platform add ios@6.0.0
+```
