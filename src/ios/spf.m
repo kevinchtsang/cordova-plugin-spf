@@ -12,10 +12,11 @@
 
 - (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command
 {
-    [[MicrophoneSignalProcess getInstance] startCalibration:self];
     
-    id <OnCalibrationFinished> onFinish;
     
+//    id <OnCalibrationFinished> onFinish;
+    NSObject<OnCalibrationFinished>* onFinish;
+    [[MicrophoneSignalProcess getInstance] startCalibration:onFinish];
 //    int status = [onFinish status];
     
     CDVPluginResult* result;
@@ -43,9 +44,12 @@
 
 - (void) startMeasurementSRP:(CDVInvokedUrlCommand*)command
 {
-    [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
+//    id <OnPeakFound> peak;
+    NSObject<OnPeakFound>* peakFound;
+    NSObject<OnModeChanges>* mode;
+
+    bool peak = [[MicrophoneSignalProcess getInstance] startAnalyze:peakFound modeChangeListener:mode];
     
-    id <OnPeakFound> peak;
     
     CDVPluginResult* result;
     if (peak == 0) {
@@ -53,9 +57,10 @@
                   resultWithStatus:CDVCommandStatus_ERROR
                   messageAsString:@"Error in Measurement"];
     } else {
+        NSString* message = [NSString stringWithFormat:@"%i",peak];
         result = [CDVPluginResult
                   resultWithStatus:CDVCommandStatus_OK
-                  messageAsString:peak];
+                  messageAsString:message];
     }
     
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
