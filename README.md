@@ -1,24 +1,32 @@
 # Cordova SPF Plugin
-Cordova Plugin for smart peak flow (spf) based on [cordova-plugin-hello](https://github.com/don/cordova-plugin-hello).
 
-The plugin will use the library provided by [Smart Respiratory Products Ltd](https://smartasthma.com/)
+Cordova Plugin for smart peak flow (spf) meter by [Smart Respiratory Products Ltd](https://smartasthma.com/).
 
-The library and binary files will need to be added and organised as follows:
-```
-com.example.spf
-└───SpfPlugin
-│   └───lib
-│   │   └───spf_lib_modes.h
-│   └───libSPF-iOS-Lib.a
-│   └───MicrophoneSignalProcess.h
-│   └───spf.h
-│   └───spf.m
-│   └───WaveWriter.h
-```
-If running with xcode, add the `libSPF-iOS-Lib.a` to "Link Binary with Library" under the "Build Phases" settings of your xcode app.
 
-If cordova is not compling, it may be due to iOS version. Try to use an older version, for example iOS 6.0.0
+## Usage
+This source code is incomplete and needs the SPF library from Smart Respiratory Products.
+
+The files provided with the SPF library must be placed inside the lib/ folder as follows:
+
+Clone or download this repository and add the missing SPF libraries as follows:
 ```
-cordova platform remove ios
-cordova platform add ios@6.0.0
+plugin root folder
+└───lib
+    └───ios
+    │   └───spf_lib_modes.h
+    │   └───libSPF-iOS-Lib.a
+    │   └───MicrophoneSignalProcess.h
+    │   └───WaveWriter.h
+    └───android
+        └───SPFLib-3.6.7.aar
+        └───spf-calibration-3.6.7.apk
+
 ```
+
+Then you can add the plugin inside your cordova project with:
+
+```
+cordova plugin add ../path-to-plugin/
+```
+
+Before updating this plugin punlicly please make sure to remove the SPF libraries or make sure you have the permission to distribute those files.

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
-        id="com.example.spf"
+        id="kevinchtsang.cordova.spf"
         version="0.7.0">
 
-  <name>Spf</name>
+  <name>cordova-plugin-spf</name>
 
   <engines>
     <engine name="cordova" version=">=3.4.0"/>
@@ -27,19 +27,23 @@
 <!--  </platform>-->
 
   <platform name="ios">
-    
+	  
     <config-file target="config.xml" parent="/widget">
       <feature name="Spf">
         <param name="ios-package" value="spf" />
       </feature>
     </config-file>
+	
+	<framework src="libstdc++.tbd" />
+	<framework src="lib/ios/libSPF-iOS-Lib.a" custom="true" />
+	
+	<header-file src="lib/ios/WaveWriter.h"/>
+	<header-file src="lib/ios/MicrophoneSignalProcess.h"/>
+    <header-file src="lib/ios/spf_lib_modes.h"/>
 
-    <header-file src="src/ios/spf.h" target-dir="SpfPlugin"/>
-    <source-file src="src/ios/spf.m" target-dir="SpfPlugin"/>
+    <header-file src="src/ios/spf.h" />
+    <source-file src="src/ios/spf.m" />
   </platform>
 
-<!--  <platform name="wp7">-->
-<!--    <source-file src="src/wp7/Hello.cs"/>-->
-<!--  </platform>-->
 
 </plugin>
