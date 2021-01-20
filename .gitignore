@@ -1,0 +1,4 @@
+.git
+/lib/ios/*
+/lib/android/*
+.DS_Store
