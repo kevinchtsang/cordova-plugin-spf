@@ -6,9 +6,8 @@ Cordova Plugin for smart peak flow (spf) meter by [Smart Respiratory Products Lt
 ## Usage
 This source code is incomplete and needs the SPF library from Smart Respiratory Products.
 
-The files provided with the SPF library must be placed inside the lib/ folder as follows:
-
 Clone or download this repository and add the missing SPF libraries as follows:
+
 ```
 plugin root folder
 └───lib
