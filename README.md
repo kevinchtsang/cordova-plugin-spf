@@ -28,4 +28,4 @@ Then you can add the plugin inside your cordova project with:
 cordova plugin add ../path-to-plugin/
 ```
 
-Before updating this plugin punlicly please make sure to remove the SPF libraries or make sure you have the permission to distribute those files.
+Before updating this plugin publicly please make sure to remove the SPF libraries or make sure you have the permission to distribute those files.
