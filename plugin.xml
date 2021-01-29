@@ -33,9 +33,14 @@
         <param name="ios-package" value="spf" />
       </feature>
     </config-file>
-	
-	<framework src="libstdc++.tbd" />
-	<framework src="lib/ios/libSPF-iOS-Lib.a" custom="true" />
+    
+    <config-file target="*-Info.plist">      
+      <key>NSMicrophoneUsageDescription</key>
+      <string>Ask for permission here</string>
+    </config-file>
+    
+    <framework src="libstdc++.tbd" />
+    <framework src="lib/ios/libSPF-iOS-Lib.a" custom="true"/>
 	
 	<header-file src="lib/ios/WaveWriter.h"/>
 	<header-file src="lib/ios/MicrophoneSignalProcess.h"/>
