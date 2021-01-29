@@ -74,7 +74,7 @@
 {
     
     [[MicrophoneSignalProcess getInstance] stopAnalyze];
-    [[MicrophoneSignalProcess getInstance] close];
+//    [[MicrophoneSignalProcess getInstance] close];
     
     CDVPluginResult* result = [CDVPluginResult
                                resultWithStatus:CDVCommandStatus_OK];
