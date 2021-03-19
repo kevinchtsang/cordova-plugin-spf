@@ -83,3 +83,5 @@ Stop the measurement:
 ```
 cordova.plugins.spf.stopMeasurement(successCallback, errorCallback)
 ```
+## Prototype App
+The index.html and index.js contains a prototype app that tests the plugin functions.

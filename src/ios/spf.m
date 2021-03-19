@@ -10,17 +10,21 @@
 
 @implementation spf
 
+- (void)onFinish:(int)status { }
+- (void)onResult:(int)peak { }
+- (void)onModeChanged:(spf_mode)previousMode andNewMode:(spf_mode) mode { }
+
 - (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command
 {
     
-    
-//    id <OnCalibrationFinished> onFinish;
-    NSObject<OnCalibrationFinished>* onFinish;
-    [[MicrophoneSignalProcess getInstance] startCalibration:onFinish];
-//    int status = [onFinish status];
-    
+
+    bool status = [[MicrophoneSignalProcess getInstance] startCalibration:self];
+//    [[self status] onFinish];
+    [self onFinish:status];
+//    onFinish
     CDVPluginResult* result;
-    if (onFinish == 0) {
+//    if (status == 0) {
+    if (status == YES) {
         result = [CDVPluginResult
                   resultWithStatus:CDVCommandStatus_ERROR
                   messageAsString:@"Error in Calibration"];
@@ -45,10 +49,10 @@
 - (void) startMeasurementSRP:(CDVInvokedUrlCommand*)command
 {
 //    id <OnPeakFound> peak;
-    NSObject<OnPeakFound>* peakFound;
-    NSObject<OnModeChanges>* mode;
+//    NSObject<OnPeakFound>* peakFound;
+//    NSObject<OnModeChanges>* mode;
 
-    bool peak = [[MicrophoneSignalProcess getInstance] startAnalyze:peakFound modeChangeListener:mode];
+    bool peak = [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
     
     
     CDVPluginResult* result;
@@ -70,7 +74,7 @@
 {
     
     [[MicrophoneSignalProcess getInstance] stopAnalyze];
-    [[MicrophoneSignalProcess getInstance] close];
+//    [[MicrophoneSignalProcess getInstance] close];
     
     CDVPluginResult* result = [CDVPluginResult
                                resultWithStatus:CDVCommandStatus_OK];
