@@ -51,6 +51,7 @@ public class SPF extends CordovaPlugin {
                                 @Override
                                 public void onResult(int peakFlowRate) {
                                     Log.d("SPF-Lib", "Peak Flow Rate: " + peakFlowRate);
+                                    MicrophoneSignalProcess.getInstance().stopAnalyze();
                                     try {
                                         JSONObject retval = new JSONObject();
                                         retval.put("state", "completed");
@@ -101,7 +102,10 @@ public class SPF extends CordovaPlugin {
                                         } else if (previousMode == SPFMode.MODE_DONE) {
                                             retval.put("previousState", "done");
                                         }
-                                        callbackContext.success(retval);
+                                        PluginResult result = new PluginResult(PluginResult.Status.OK, retval);
+                                        result.setKeepCallback(true);
+
+                                        callbackContext.sendPluginResult(result);
                                     } catch (Exception ex) {
                                         callbackContext.error(ex.getMessage());
                                     }

@@ -68,20 +68,28 @@ The callback has for argument a JSON object that looks like:
 {
     previousState: 'listening',
     state: 'computing',
-    peakFlowRate: 12
+    peakFlowRate: 450
 }
 ```
 
 Possible states are: listening, spinning, computing, calibrating, skipping, done, completed.
 The peakFlowRate is only passed when the state is completed.
 
-A typical state transition is like this:
+A typical sequence of state transitions is like this:
 
+{ previousState: "listening", state: "spinning" }
+{ previousState: "spinning", state: "listening" }
+{ previousState: "listening", state: "spinning" }
+{ previousState: "spinning", state: "listening" }
+{ previousState: "listening", state: "spinning" }
+{ previousState: "spinning", state: "computing"}
+{ state: "completed", peakFlowRate: 436 }
 
-
-Stop the measurement:
+The measurement stops automatically when the peakflow is detected. You can stopt it before by calling:
 ```
 cordova.plugins.spf.stopMeasurement(successCallback, errorCallback)
 ```
+
+
 ## Prototype App
 The index.html and index.js contains a prototype app that tests the plugin functions.
