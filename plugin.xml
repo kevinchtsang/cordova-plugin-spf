@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         id="kevinchtsang.cordova.spf"
-        version="0.7.0">
+        version="0.1.0">
 
   <name>cordova-plugin-spf</name>
 
@@ -12,24 +12,33 @@
   <asset src="www/spf.js" target="js/spf.js"/>
 
   <js-module src="www/spf.js" name="spf">
-    <clobbers target="spf" />
+    <clobbers target="cordova.plugins.spf" />
   </js-module>
 
-<!--  <platform name="android">-->
-<!---->
-<!--    <config-file target="res/xml/config.xml" parent="/*">-->
-<!--      <feature name="Hello">-->
-<!--        <param name="android-package" value="com.example.plugin.Hello"/>-->
-<!--      </feature>-->
-<!--    </config-file>-->
-<!---->
-<!--    <source-file src="src/android/Hello.java" target-dir="src/com/example/plugin/"/>-->
-<!--  </platform>-->
+ <platform name="android">
+
+  <config-file target="res/xml/config.xml" parent="/*">
+    <feature name="SPF">
+       <param name="android-package" value="kevinchtsang.cordova.spf.SPF"/>
+    </feature>
+  </config-file>
+
+  <source-file src="src/android/SPF.java" target-dir="src/kevinchtsang/cordova/spf/"/>
+
+  <framework src="src/android/SPF.gradle" custom="true" type="gradleReference" />
+
+  <lib-file src="lib/android/SPFLib-3.6.7.aar" />
+
+  <config-file target="AndroidManifest.xml" parent="/*">
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  </config-file>
+ </platform>
 
   <platform name="ios">
 	  
     <config-file target="config.xml" parent="/widget">
-      <feature name="Spf">
+      <feature name="SPF">
         <param name="ios-package" value="spf" />
       </feature>
     </config-file>
