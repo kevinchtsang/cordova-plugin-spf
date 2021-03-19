@@ -14,11 +14,11 @@
 - (void)onResult:(int)peak { }
 - (void)onModeChanged:(spf_mode)previousMode andNewMode:(spf_mode) mode { }
 
-- (void) startCalibrationSRP:(CDVInvokedUrlCommand*)command
+- (void) startCalibration:(CDVInvokedUrlCommand*)command
 {
     
 
-    bool status = [[MicrophoneSignalProcess getInstance] startCalibration:self];
+    bool status = [[MicrophoneSignalProcess getInstance] :self];
 //    [[self status] onFinish];
     [self onFinish:status];
 //    onFinish
@@ -36,7 +36,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) stopCalibrationSRP:(CDVInvokedUrlCommand*)command
+- (void) stopCalibration:(CDVInvokedUrlCommand*)command
 {
     [[MicrophoneSignalProcess getInstance] stopCalibration];
     
@@ -46,7 +46,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) startMeasurementSRP:(CDVInvokedUrlCommand*)command
+- (void) startMeasurement:(CDVInvokedUrlCommand*)command
 {
 //    id <OnPeakFound> peak;
 //    NSObject<OnPeakFound>* peakFound;
@@ -70,7 +70,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) stopMeasurementSRP:(CDVInvokedUrlCommand*)command
+- (void) stopMeasurement:(CDVInvokedUrlCommand*)command
 {
     
     [[MicrophoneSignalProcess getInstance] stopAnalyze];

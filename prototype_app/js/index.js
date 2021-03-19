@@ -25,65 +25,62 @@ document.getElementById("stopCalibrationButton").addEventListener("click", stopC
 document.getElementById("startMeasurementButton").addEventListener("click", startMeasurementButton);
 document.getElementById("stopMeasurementButton").addEventListener("click", stopMeasurementButton);
 
-function onDeviceReady() {
-    // Cordova is now initialized. Have fun!
-
+function onDeviceReady () {
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
     document.getElementById('deviceready').classList.add('ready');
-    
 }
 
-function startCalibrationButton() {
+function startCalibrationButton () {
     console.log("start calibration");
     document.getElementById("peakflow").innerHTML = "start calibration";
 
-    var success = function(message) {
+    var success = function (message) {
         alert(message);
     }
 
-    var failure = function() {
+    var failure = function () {
         alert("Error calling SPF Plugin");
     }
-    spf.startCalibrationSRP(success, failure);
+    cordova.plugins.spf.startCalibration(success, failure);
 }
 
-function stopCalibrationButton() {
+function stopCalibrationButton () {
     console.log("stop calibration");
     document.getElementById("peakflow").innerHTML = "stop calibration";
-    var success = function(message) {
+    var success = function (message) {
         alert(message);
     }
 
-    var failure = function() {
+    var failure = function () {
         alert("Error calling SPF Plugin");
     }
-    spf.stopCalibrationSRP(success, failure);
+    cordova.plugins.spf.stopCalibration(success, failure);
 }
 
-function startMeasurementButton() {
+function startMeasurementButton () {
     console.log("start measurement");
-    var success = function(message) {
+    var success = function (message) {
         alert(message);
     }
 
-    var failure = function() {
+    var failure = function () {
         alert("Error calling SPF Plugin");
     }
-    spf.startMeasurementSRP(success, failure);
-//    document.getElementById("peakflow").innerHTML = peakflow;
-//    alert("stop calibration");
-    
+    cordova.plugins.spf.startMeasurement(success, failure);
+    //    document.getElementById("peakflow").innerHTML = peakflow;
+    //    alert("stop calibration");
+
 }
 
-function stopMeasurementButton() {
+function stopMeasurementButton () {
     console.log("stop measurement");
-    var success = function(message) {
+    var success = function (message) {
         alert(message);
     }
 
-    var failure = function() {
+    var failure = function () {
         alert("Error calling SPF Plugin");
     }
-    spf.stopMeasurementSRP(success, failure);
+    cordova.plugins.spf.stopMeasurement(success, failure);
 }
 
