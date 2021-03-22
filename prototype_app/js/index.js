@@ -59,17 +59,16 @@ function stopCalibrationButton () {
 
 function startMeasurementButton () {
     console.log("start measurement");
+    document.getElementById("peakflow").innerHTML = "start measurement";
     var success = function (message) {
         alert(message);
+        document.getElementById("peakflow").innerHTML = message;
     }
 
     var failure = function () {
         alert("Error calling SPF Plugin");
     }
     cordova.plugins.spf.startMeasurement(success, failure);
-    //    document.getElementById("peakflow").innerHTML = peakflow;
-    //    alert("stop calibration");
-
 }
 
 function stopMeasurementButton () {
