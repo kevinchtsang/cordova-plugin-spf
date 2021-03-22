@@ -12,11 +12,13 @@
 
 @interface spf : CDVPlugin <OnCalibrationFinished, OnPeakFound, OnModeChanges>
 
-//@property (nonatomic, strong) NSObject<OnCalibrationFinished>* onFinish;
+- (void)onFinish:(int)status;
+- (void)onResult:(int)peak ;
+- (void)onModeChanged:(spf_mode)previousMode andNewMode:(spf_mode) mode;
 
-- (void)startCalibration:(CDVInvokedUrlCommand *)command;
-- (void)stopCalibration:(CDVInvokedUrlCommand *)command;
-- (void)startMeasurement:(CDVInvokedUrlCommand *)command;
-- (void)stopMeasurement:(CDVInvokedUrlCommand *)command;
+- (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command;
+- (void) stopCalibration:(CDVInvokedUrlCommand*)command;
+- (void) startMeasurement:(CDVInvokedUrlCommand*)command;
+- (void) stopMeasurement:(CDVInvokedUrlCommand*)command;
 
 @end
