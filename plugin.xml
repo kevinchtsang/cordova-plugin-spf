@@ -43,9 +43,9 @@
       </feature>
     </config-file>
     
-    <config-file target="*-Info.plist">      
+    <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
       <key>NSMicrophoneUsageDescription</key>
-      <string>Ask for permission here</string>
+      <string>Peak Flow Meter Audio Connection</string>
     </config-file>
     
     <framework src="libstdc++.tbd" />
