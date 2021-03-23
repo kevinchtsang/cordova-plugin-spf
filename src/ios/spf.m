@@ -144,7 +144,7 @@ CDVPluginResult* result;
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command
 {
     [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
-    
+    [pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
