@@ -12,10 +12,6 @@
 
 @interface spf : CDVPlugin <OnCalibrationFinished, OnPeakFound, OnModeChanges>
 
-- (void)onFinish:(int)status;
-- (void)onResult:(int)peak ;
-- (void)onModeChanged:(spf_mode)previousMode andNewMode:(spf_mode) mode;
-
 - (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command;
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command;
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command;
