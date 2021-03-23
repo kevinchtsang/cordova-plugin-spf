@@ -38,8 +38,9 @@ function startCalibrationButton () {
         alert(message);
     }
 
-    var failure = function () {
-        alert("Error calling SPF Plugin");
+    var failure = function (message) {
+        console.log(message)
+        alert("Error calling SPF Plugin - Start Calibrate");
     }
     cordova.plugins.spf.startCalibration(success, failure);
 }
@@ -52,7 +53,7 @@ function stopCalibrationButton () {
     }
 
     var failure = function () {
-        alert("Error calling SPF Plugin");
+        alert("Error calling SPF Plugin - Stop Calibrate");
     }
     cordova.plugins.spf.stopCalibration(success, failure);
 }
@@ -61,12 +62,13 @@ function startMeasurementButton () {
     console.log("start measurement");
     document.getElementById("peakflow").innerHTML = "start measurement";
     var success = function (message) {
-        alert(message);
+        console.log(message);
         document.getElementById("peakflow").innerHTML = message;
     }
 
-    var failure = function () {
-        alert("Error calling SPF Plugin");
+    var failure = function (message) {
+        console.log(message)
+        console.log("Error calling SPF Plugin - Start Measure");
     }
     cordova.plugins.spf.startMeasurement(success, failure);
 }
@@ -78,7 +80,7 @@ function stopMeasurementButton () {
     }
 
     var failure = function () {
-        alert("Error calling SPF Plugin");
+        alert("Error calling SPF Plugin - Stop Measure");
     }
     cordova.plugins.spf.stopMeasurement(success, failure);
 }
