@@ -124,7 +124,9 @@ static NSString* myAsyncCallbackId = nil;
     result = [CDVPluginResult
               resultWithStatus:CDVCommandStatus_OK
               messageAsString:message];
-
+    
+    [result setKeepCallbackAsBool:TRUE];
+    
     [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
 }
 
