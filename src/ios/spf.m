@@ -144,6 +144,8 @@ static NSString* myAsyncCallbackId = nil;
 
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command
 {
+    myAsyncCallbackId = nil;
+    
     [[MicrophoneSignalProcess getInstance] stopCalibration];
     
     CDVPluginResult* result = [CDVPluginResult
@@ -166,6 +168,7 @@ static NSString* myAsyncCallbackId = nil;
 
 - (void) stopMeasurement:(CDVInvokedUrlCommand*)command
 {
+    myAsyncCallbackId = nil;
     
     [[MicrophoneSignalProcess getInstance] stopAnalyze];
 //    [[MicrophoneSignalProcess getInstance] close];
