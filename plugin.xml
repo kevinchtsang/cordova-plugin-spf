@@ -49,7 +49,8 @@
     </config-file>
     
     <framework src="libstdc++.tbd" />
-    <framework src="lib/ios/libSPF-iOS-Lib.a" custom="true"/>
+    
+    <source-file src="lib/ios/libSPF-iOS-Lib.a" framework="true"/>
 	
 	<header-file src="lib/ios/WaveWriter.h"/>
 	<header-file src="lib/ios/MicrophoneSignalProcess.h"/>
