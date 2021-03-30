@@ -124,10 +124,8 @@ static NSString* myAsyncCallbackId = nil;
     result = [CDVPluginResult
               resultWithStatus:CDVCommandStatus_OK
               messageAsString:message];
-//    [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
-//        myAsyncCallbackId = nil;
-//    }
-    
+
+    [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
 }
 
 - (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command
