@@ -5,7 +5,6 @@ module.exports = {
         cordova.exec(successCallback, errorCallback, "SPF", "requestPermissions");
     },
     startCalibration: function (successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, "SPF", "startCalibration");
         cordova.exec(successCallback, errorCallback, "SPF", "SPFstartCalibration");
     },
     stopCalibration: function (successCallback, errorCallback) {

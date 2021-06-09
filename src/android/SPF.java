@@ -26,7 +26,7 @@ public class SPF extends CordovaPlugin {
         if (action.equals("requestPermissions")) {
             authReqCallbackCtx = callbackContext;
             cordova.requestPermissions(this, REQUEST_DYN_PERMS, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS});
-        } else if (action.equals("startCalibration")) {
+        } else if (action.equals("SPFstartCalibration")) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
