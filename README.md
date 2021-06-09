@@ -25,7 +25,7 @@ plugin root folder
 Then you can add the plugin inside your cordova project with:
 
 ```
-cordova plugin add ../path-to-plugin/
+cordova plugin add ../path-to-plugin/ --variable MICROPHONE_USAGE_DESCRIPTION='This app needs the microphone to read the smart peak flow meter'
 ```
 
 Before updating this plugin publicly please make sure to remove the SPF libraries or make sure you have the permission to distribute those files.
