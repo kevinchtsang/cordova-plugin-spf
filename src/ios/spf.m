@@ -44,10 +44,9 @@ static NSString* myAsyncCallbackId = nil;
                   resultWithStatus:CDVCommandStatus_ERROR
                   messageAsString:@"Error in Measurement"];
     } else {
-        NSString* message = [NSString stringWithFormat:@"%@", retval]; //[retval jsonString]];
         result = [CDVPluginResult
                   resultWithStatus:CDVCommandStatus_OK
-                  messageAsString:message];
+                  messageAsDictionary:retval];
         [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
         myAsyncCallbackId = nil;
     }
@@ -120,10 +119,9 @@ static NSString* myAsyncCallbackId = nil;
 //                                   messageAsString:@"Error in Mode Change"];
 //    } else {
 //    if (myAsyncCallbackId != nil) {
-    NSString* message = [NSString stringWithFormat:@"%@", retval]; //[retval jsonString]];
     result = [CDVPluginResult
               resultWithStatus:CDVCommandStatus_OK
-              messageAsString:message];
+              messageAsDictionary:retval];
     
     [result setKeepCallbackAsBool:TRUE];
     
