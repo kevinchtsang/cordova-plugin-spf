@@ -13,6 +13,7 @@
 
 @interface spf : CDVPlugin <OnCalibrationFinished, OnPeakFound, OnModeChanges>
 
+- (void) requestPermissions:(CDVInvokedUrlCommand*)command;
 - (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command;
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command;
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command;

@@ -138,8 +138,7 @@ static NSString* myAsyncCallbackId = nil;
     
     // find inputs
     NSArray* inputs = [session availableInputs];
-    NSPredicate *btPortPredicate = [NSPredicate predicateWithFormat:@"portType ==%@",
-                                    @"BluetoothHFP"];
+    NSPredicate *btPortPredicate = [NSPredicate predicateWithFormat:@"portType ==%@",@"BluetoothHFP"];
     NSArray *btInputs = [inputs filteredArrayUsingPredicate:btPortPredicate];
     if ([btInputs count] > 1) {
         NSLog(@"Too many Bluetooth");
@@ -156,7 +155,7 @@ static NSString* myAsyncCallbackId = nil;
         };
     }
     
-    // then try to connec to Jack
+    // then try to connect to Jack
     for (AVAudioSessionPortDescription *input in inputs) {
         NSLog(@"port type = %@",input.portType);
         if ([input.portType isEqual:AVAudioSessionPortHeadsetMic]) {
@@ -172,16 +171,17 @@ static NSString* myAsyncCallbackId = nil;
 
 - (void) requestPermissions:(CDVInvokedUrlCommand*)command
 {
-    myAsyncCallbackId = nil;
-    
+    myAsyncCallbackId = command.callbackId;
+    result = [CDVPluginResult
+              resultWithStatus:CDVCommandStatus_NO_RESULT];
+    [result setKeepCallbackAsBool:TRUE];
+
     switch ([[AVAudioSession sharedInstance] recordPermission]) {
         case AVAudioSessionRecordPermissionGranted:
-            NSLog(@"mic ok");
             result = [CDVPluginResult
                       resultWithStatus:CDVCommandStatus_OK];
             break;
         case AVAudioSessionRecordPermissionDenied:
-            NSLog(@"mic deny");
             result = [CDVPluginResult
                       resultWithStatus:CDVCommandStatus_ERROR
                       messageAsString:@"Microphone Denied"];
@@ -189,24 +189,19 @@ static NSString* myAsyncCallbackId = nil;
         case AVAudioSessionRecordPermissionUndetermined:
             [[AVAudioSession sharedInstance]requestRecordPermission:^(BOOL granted) {
                 if (granted) {
-                    NSLog(@"mic allow");
+                    // need to wait for this result
                     result = [CDVPluginResult
                               resultWithStatus:CDVCommandStatus_OK];
                 } else {
-                    NSLog(@"mic denied");
                     result = [CDVPluginResult
                               resultWithStatus:CDVCommandStatus_ERROR
                               messageAsString:@"Microphone Denied"];
                 }
+                [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
+                myAsyncCallbackId = nil;
             }];
             break;
-        default:
-            result = [CDVPluginResult
-                      resultWithStatus:CDVCommandStatus_ERROR
-                      messageAsString:@"Microphone Unknown"];
-            break;
-    }
-    
+    };
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
