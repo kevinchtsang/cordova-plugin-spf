@@ -128,16 +128,108 @@ static NSString* myAsyncCallbackId = nil;
     [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
 }
 
+- (bool) btConnection
+{
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    
+    // activate session
+    [session setCategory:AVAudioSessionCategoryRecord withOptions:AVAudioSessionCategoryOptionAllowBluetooth error:nil];
+    [session setActive:YES error:nil];
+    
+    // find inputs
+    NSArray* inputs = [session availableInputs];
+    NSPredicate *btPortPredicate = [NSPredicate predicateWithFormat:@"portType ==%@",
+                                    @"BluetoothHFP"];
+    NSArray *btInputs = [inputs filteredArrayUsingPredicate:btPortPredicate];
+    if ([btInputs count] > 1) {
+        NSLog(@"Too many Bluetooth");
+        return NO;
+    };
+    
+    // try to connect Bluetooth first
+    for (AVAudioSessionPortDescription *input in inputs) {
+        NSLog(@"port type = %@",input.portType);
+        if ([input.portType isEqual:AVAudioSessionPortBluetoothHFP] && [input.portName  isEqual: @"SmartPeakFlow"]) {
+            [session setPreferredInput:input error:nil];
+            NSLog(@"Connected Bluetooth");
+            return YES;
+        };
+    }
+    
+    // then try to connec to Jack
+    for (AVAudioSessionPortDescription *input in inputs) {
+        NSLog(@"port type = %@",input.portType);
+        if ([input.portType isEqual:AVAudioSessionPortHeadsetMic]) {
+            [session setPreferredInput:input error:nil];
+            NSLog(@"Connected Headset mic");
+            return YES;
+        };
+    }
+    NSLog(@"No Connection");
+    return NO;
+}
+
+
+- (void) requestPermissions:(CDVInvokedUrlCommand*)command
+{
+    myAsyncCallbackId = nil;
+    
+    switch ([[AVAudioSession sharedInstance] recordPermission]) {
+        case AVAudioSessionRecordPermissionGranted:
+            NSLog(@"mic ok");
+            result = [CDVPluginResult
+                      resultWithStatus:CDVCommandStatus_OK];
+            break;
+        case AVAudioSessionRecordPermissionDenied:
+            NSLog(@"mic deny");
+            result = [CDVPluginResult
+                      resultWithStatus:CDVCommandStatus_ERROR
+                      messageAsString:@"Microphone Denied"];
+            break;
+        case AVAudioSessionRecordPermissionUndetermined:
+            [[AVAudioSession sharedInstance]requestRecordPermission:^(BOOL granted) {
+                if (granted) {
+                    NSLog(@"mic allow");
+                    result = [CDVPluginResult
+                              resultWithStatus:CDVCommandStatus_OK];
+                } else {
+                    NSLog(@"mic denied");
+                    result = [CDVPluginResult
+                              resultWithStatus:CDVCommandStatus_ERROR
+                              messageAsString:@"Microphone Denied"];
+                }
+            }];
+            break;
+        default:
+            result = [CDVPluginResult
+                      resultWithStatus:CDVCommandStatus_ERROR
+                      messageAsString:@"Microphone Unknown"];
+            break;
+    }
+    
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 - (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command
 {
-    myAsyncCallbackId = command.callbackId;
-    [self.commandDelegate runInBackground:^{
-        [[MicrophoneSignalProcess getInstance] startCalibration:self];
+    bool connection = [self btConnection];
+    
+    // only calibrate if connection found
+    if (connection) {
+        myAsyncCallbackId = command.callbackId;
+        [self.commandDelegate runInBackground:^{
+            [[MicrophoneSignalProcess getInstance] startCalibration:self];
+            result = [CDVPluginResult
+                      resultWithStatus:CDVCommandStatus_NO_RESULT];
+            [result setKeepCallbackAsBool:TRUE];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        }];
+    } else {
         result = [CDVPluginResult
-                  resultWithStatus:CDVCommandStatus_NO_RESULT];
-        [result setKeepCallbackAsBool:TRUE];
+                  resultWithStatus:CDVCommandStatus_ERROR
+                  messageAsString:@"Error in Calibration: no connection found"];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-    }];
+    }
 }
 
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command
@@ -154,8 +246,10 @@ static NSString* myAsyncCallbackId = nil;
 
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command
 {
+    
     myAsyncCallbackId = command.callbackId;
     [self.commandDelegate runInBackground:^{
+        [self btConnection];
         [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
         CDVPluginResult* result = [CDVPluginResult
                                    resultWithStatus:CDVCommandStatus_NO_RESULT];

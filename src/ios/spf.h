@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 #import "MicrophoneSignalProcess.h"
 #import <Cordova/CDV.h>
 
@@ -16,5 +17,6 @@
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command;
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command;
 - (void) stopMeasurement:(CDVInvokedUrlCommand*)command;
+- (bool) btConnection;
 
 @end
