@@ -113,17 +113,7 @@ public class SPF extends CordovaPlugin {
 
         context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
 
-        if (btConnected && isBluetoothHeadsetConnected()) {
-            Log.d("SPF-Connection", "Connected Bluetooth mic");
-
-            mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            mAudioManager.startBluetoothSco();
-            mAudioManager.setBluetoothScoOn(true);
-
-            return true;
-        }
-
-		// Listen for headset plug/unplug
+        // Listen for headset plug/unplug
 		context.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context p0, Intent intent) {
@@ -138,7 +128,15 @@ public class SPF extends CordovaPlugin {
             }
         }, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
 
-        if (headsetMic) {
+        if (btConnected && isBluetoothHeadsetConnected()) {
+            Log.d("SPF-Connection", "Connected Bluetooth mic");
+
+            mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            mAudioManager.startBluetoothSco();
+            mAudioManager.setBluetoothScoOn(true);
+
+            return true;
+        } else if (headsetMic) {
             Log.d("SPF-Connection", "Connected Headset mic");
 
             mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
@@ -147,10 +145,17 @@ public class SPF extends CordovaPlugin {
             mAudioManager.setSpeakerphoneOn(false);
 
             return true;
-        }
+        } else {
+            Log.d("SPF-Connection", "no connection");
+            
+            // reset to normal phone settings
+            mAudioManager.setMode(AudioManager.MODE_NORMAL);
+            mAudioManager.stopBluetoothSco();
+            mAudioManager.setBluetoothScoOn(false);
+            mAudioManager.setSpeakerphoneOn(true);
 
-        Log.d("SPF-Connection", "end btConnection");
-        return false;
+            return false;
+        }
 	};
 
     private boolean isBluetoothHeadsetConnected() {
