@@ -60,6 +60,12 @@ public class SPF extends CordovaPlugin {
                 final int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
                 if (state == BluetoothHeadset.STATE_DISCONNECTED) {
                     Log.d("SPF-Connection", "Bluetooth disconnected (headset)");
+                    // reset to normal phone settings
+                    mAudioManager.setMode(AudioManager.MODE_NORMAL);
+                    mAudioManager.stopBluetoothSco();
+                    mAudioManager.setBluetoothScoOn(false);
+                    mAudioManager.setSpeakerphoneOn(true);
+
                     btConnected = false;
                 } else if (state == BluetoothHeadset.STATE_DISCONNECTING ||
                         state == BluetoothHeadset.STATE_CONNECTING) {
@@ -99,7 +105,7 @@ public class SPF extends CordovaPlugin {
         final Context context = activity.getApplicationContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-		// try to connect bluetooth
+        // try to connect bluetooth
         context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED));
         context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED));
@@ -114,7 +120,7 @@ public class SPF extends CordovaPlugin {
         context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
 
         // Listen for headset plug/unplug
-		context.registerReceiver(new BroadcastReceiver() {
+        context.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context p0, Intent intent) {
                 final String action = intent.getAction();
@@ -147,7 +153,7 @@ public class SPF extends CordovaPlugin {
             return true;
         } else {
             Log.d("SPF-Connection", "no connection");
-            
+
             // reset to normal phone settings
             mAudioManager.setMode(AudioManager.MODE_NORMAL);
             mAudioManager.stopBluetoothSco();
@@ -156,7 +162,7 @@ public class SPF extends CordovaPlugin {
 
             return false;
         }
-	};
+    };
 
     private boolean isBluetoothHeadsetConnected() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -183,8 +189,8 @@ public class SPF extends CordovaPlugin {
             authReqCallbackCtx = callbackContext;
             cordova.requestPermissions(this, REQUEST_DYN_PERMS, new String[]{
                 Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN, 
-                Manifest.permission.RECORD_AUDIO, 
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.MODIFY_AUDIO_SETTINGS});
         } else if (action.equals("SPFstartCalibration")) {
             cordova.getThreadPool().execute(new Runnable() {
@@ -199,9 +205,9 @@ public class SPF extends CordovaPlugin {
                                 callbackContext.success();
                             }
                         });
-                     } else {
-                         callbackContext.error("Error in Calibration: no connection found");
-                     }
+                    } else {
+                        callbackContext.error("Error in Calibration: no connection found");
+                    }
                 }
             });
         } else if(action.equals("stopCalibration")) {
