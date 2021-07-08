@@ -1,7 +1,14 @@
 package kevinchtsang.cordova.spf;
 
 import android.Manifest;
+import android.app.Activity;
+import android.bluetooth.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.util.Log;
 
 import com.synthnet.spf.MicrophoneSignalProcess;
@@ -20,23 +27,176 @@ public class SPF extends CordovaPlugin {
 
     private CallbackContext authReqCallbackCtx;
 
+    private static boolean btConnected;
+    private static boolean headsetMic;
+    public AudioManager mAudioManager;
+
+
+    private final Object blueReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context p0, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getName() == "SmartPeakFlow") {
+                    device.createBond();
+                    Log.d("SPF-Connection","Bluetooth paired and connected");
+                    btConnected = true;
+                }
+            } else if (action.equals(BluetoothDevice.ACTION_ACL_CONNECTED)) {
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getName() == "SmartPeakFlow") {
+                    Log.d("SPF-Connection", "Bluetooth connected (ACL)");
+                    btConnected = true;
+                }
+            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) ||
+                    action.equals(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED)) {
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getName() == "SmartPeakFlow") {
+                    Log.d("SPF-Connection", "Bluetooth disconnected (ACL)");
+                    btConnected = false;
+                }
+            } else if (action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
+                if (state == BluetoothHeadset.STATE_DISCONNECTED) {
+                    Log.d("SPF-Connection", "Bluetooth disconnected (headset)");
+                    btConnected = false;
+                } else if (state == BluetoothHeadset.STATE_DISCONNECTING ||
+                        state == BluetoothHeadset.STATE_CONNECTING) {
+                    Log.d("SPF-Connection", "Bluetooth not ready (headset)");
+                    btConnected = false;
+                } else if (state == BluetoothHeadset.STATE_CONNECTED) {
+                    Log.d("SPF-Connection", "Bluetooth connected (headset)");
+                    btConnected = true;
+                    Log.d("SPF-Connection", "btConnected = " + btConnected);
+                }
+            } else if (action.equals(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED)) {
+                final int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
+                if (state == AudioManager.SCO_AUDIO_STATE_CONNECTING) {
+                    Log.d("SPF-Connection", "Bluetooth not ready (SCO)");
+//                    btConnected = false;
+                } else if(state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
+                    Log.d("SPF-Connection", "Bluetooth connected (SCO)");
+                    try {
+                        Thread.sleep(1000);
+                    }
+                    catch(InterruptedException ex)
+                    {
+                        Thread.currentThread().interrupt();
+                    }
+                    mAudioManager.startBluetoothSco();
+                    btConnected = true;
+                } else if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED) {
+                    Log.d("SPF-Connection", "Bluetooth disconnected (SCO)");
+//                    btConnected = false;
+                }
+            }
+        };
+    };
+
+    private boolean btConnection() {
+        final Activity activity = this.cordova.getActivity();
+        final Context context = activity.getApplicationContext();
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+		// try to connect bluetooth
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED));
+
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
+
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+
+        if (btConnected && isBluetoothHeadsetConnected()) {
+            Log.d("SPF-Connection", "Connected Bluetooth mic");
+
+            mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            mAudioManager.startBluetoothSco();
+            mAudioManager.setBluetoothScoOn(true);
+
+            return true;
+        }
+
+		// Listen for headset plug/unplug
+		context.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context p0, Intent intent) {
+                final String action = intent.getAction();
+                if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+                    final int headphones = intent.getIntExtra("state", -1);
+                    final int mic = intent.getIntExtra("microphone", -1);
+                    // Log.d("SPF-Connection", "state: " + headphones);
+                    // Log.d("SPF-Connection", "microphone: " + mic);
+                    headsetMic = headphones > 0 && mic > 0;
+                }
+            }
+        }, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+
+        if (headsetMic) {
+            Log.d("SPF-Connection", "Connected Headset mic");
+
+            mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            mAudioManager.stopBluetoothSco();
+            mAudioManager.setBluetoothScoOn(false);
+            mAudioManager.setSpeakerphoneOn(false);
+
+            return true;
+        }
+
+        Log.d("SPF-Connection", "end btConnection");
+        return false;
+	};
+
+    private boolean isBluetoothHeadsetConnected() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (BluetoothProfile.STATE_CONNECTED == adapter.getProfileConnectionState(BluetoothProfile.HEADSET)) {
+            return true;
+        }
+        return false;
+    };
+
+    @Override
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
+        final Activity activity = this.cordova.getActivity();
+        final Context context = activity.getApplicationContext();
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+        this.btConnection();
+    }
+
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
 
         if (action.equals("requestPermissions")) {
             authReqCallbackCtx = callbackContext;
-            cordova.requestPermissions(this, REQUEST_DYN_PERMS, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS});
+            cordova.requestPermissions(this, REQUEST_DYN_PERMS, new String[]{
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN, 
+                Manifest.permission.RECORD_AUDIO, 
+                Manifest.permission.MODIFY_AUDIO_SETTINGS});
         } else if (action.equals("SPFstartCalibration")) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
-                    MicrophoneSignalProcess.getInstance().startCalibration(new SignalProcess.OnCalibrated() {
-                        @Override
-                        public void onCalibrated(int status) {
-                            MicrophoneSignalProcess.getInstance().stopCalibration();
-                            callbackContext.success();
-                        }
-                    });
+                    Log.d("SPF-Connection", "btConnected=" + btConnected + ", headsetMic=" + headsetMic);
+                    if(btConnected || headsetMic){
+                        MicrophoneSignalProcess.getInstance().startCalibration(new SignalProcess.OnCalibrated() {
+                            @Override
+                            public void onCalibrated(int status) {
+                                MicrophoneSignalProcess.getInstance().stopCalibration();
+                                callbackContext.success();
+                            }
+                        });
+                     } else {
+                         callbackContext.error("Error in Calibration: no connection found");
+                     }
                 }
             });
         } else if(action.equals("stopCalibration")) {
