@@ -18,6 +18,5 @@
 - (void) stopCalibration:(CDVInvokedUrlCommand*)command;
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command;
 - (void) stopMeasurement:(CDVInvokedUrlCommand*)command;
-- (bool) btConnection;
 
 @end

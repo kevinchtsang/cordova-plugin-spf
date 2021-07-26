@@ -128,7 +128,8 @@ static NSString* myAsyncCallbackId = nil;
     [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
 }
 
-- (bool) btConnection
+// internal function that acquires the Bluetooth microphone if available first and the regular one otherwise
+- (bool) connectMicrophone
 {
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
@@ -141,7 +142,7 @@ static NSString* myAsyncCallbackId = nil;
     NSPredicate *btPortPredicate = [NSPredicate predicateWithFormat:@"portType ==%@",@"BluetoothHFP"];
     NSArray *btInputs = [inputs filteredArrayUsingPredicate:btPortPredicate];
     if ([btInputs count] > 1) {
-        NSLog(@"Too many Bluetooth");
+        NSLog(@"Too many Bluetooth microphones connected");
         return NO;
     };
     
@@ -150,7 +151,7 @@ static NSString* myAsyncCallbackId = nil;
         NSLog(@"port type = %@",input.portType);
         if ([input.portType isEqual:AVAudioSessionPortBluetoothHFP] && [input.portName  isEqual: @"SmartPeakFlow"]) {
             [session setPreferredInput:input error:nil];
-            NSLog(@"Connected Bluetooth");
+            NSLog(@"Bluetooth SmartPeakFlow connected");
             return YES;
         };
     }
@@ -160,32 +161,34 @@ static NSString* myAsyncCallbackId = nil;
         NSLog(@"port type = %@",input.portType);
         if ([input.portType isEqual:AVAudioSessionPortHeadsetMic]) {
             [session setPreferredInput:input error:nil];
-            NSLog(@"Connected Headset mic");
+            NSLog(@"Regular mic connected");
             return YES;
         };
     }
-    NSLog(@"No Connection");
+    NSLog(@"No microphone available");
     return NO;
 }
 
 
 - (void) requestPermissions:(CDVInvokedUrlCommand*)command
 {
-    myAsyncCallbackId = command.callbackId;
+    // myAsyncCallbackId = command.callbackId;
     result = [CDVPluginResult
               resultWithStatus:CDVCommandStatus_NO_RESULT];
-    [result setKeepCallbackAsBool:TRUE];
+    // [result setKeepCallbackAsBool:TRUE];
 
     switch ([[AVAudioSession sharedInstance] recordPermission]) {
         case AVAudioSessionRecordPermissionGranted:
             result = [CDVPluginResult
                       resultWithStatus:CDVCommandStatus_OK];
-            break;
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
         case AVAudioSessionRecordPermissionDenied:
             result = [CDVPluginResult
                       resultWithStatus:CDVCommandStatus_ERROR
-                      messageAsString:@"Microphone Denied"];
-            break;
+                      messageAsString:@"Access to microphone denied"];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
         case AVAudioSessionRecordPermissionUndetermined:
             [[AVAudioSession sharedInstance]requestRecordPermission:^(BOOL granted) {
                 if (granted) {
@@ -195,21 +198,20 @@ static NSString* myAsyncCallbackId = nil;
                 } else {
                     result = [CDVPluginResult
                               resultWithStatus:CDVCommandStatus_ERROR
-                              messageAsString:@"Microphone Denied"];
+                              messageAsString:@"Access to microphone denied"];
                 }
-                [self.commandDelegate sendPluginResult:result callbackId:myAsyncCallbackId];
-                myAsyncCallbackId = nil;
+                [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                // myAsyncCallbackId = nil;
             }];
-            break;
+            return;
     };
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 - (void) SPFstartCalibration:(CDVInvokedUrlCommand*)command
 {
-    bool connection = [self btConnection];
+    bool connection = [self connectMicrophone];
     
-    // only calibrate if connection found
+    // only calibrate if connection to mic found
     if (connection) {
         myAsyncCallbackId = command.callbackId;
         [self.commandDelegate runInBackground:^{
@@ -222,7 +224,7 @@ static NSString* myAsyncCallbackId = nil;
     } else {
         result = [CDVPluginResult
                   resultWithStatus:CDVCommandStatus_ERROR
-                  messageAsString:@"Error in Calibration: no connection found"];
+                  messageAsString:@"No suitable microphone connection found"];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     }
 }
@@ -241,22 +243,29 @@ static NSString* myAsyncCallbackId = nil;
 
 - (void) startMeasurement:(CDVInvokedUrlCommand*)command
 {
+    bool connection = [self connectMicrophone];
     
-    myAsyncCallbackId = command.callbackId;
-    [self.commandDelegate runInBackground:^{
-        [self btConnection];
-        [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
-        CDVPluginResult* result = [CDVPluginResult
+    // only measure if connection to mic found
+    if (connection) {
+        myAsyncCallbackId = command.callbackId;
+        [self.commandDelegate runInBackground:^{
+            [self connectMicrophone];
+            [[MicrophoneSignalProcess getInstance] startAnalyze:self modeChangeListener:self];
+            CDVPluginResult* result = [CDVPluginResult
                                    resultWithStatus:CDVCommandStatus_NO_RESULT];
-        [result setKeepCallbackAsBool:TRUE];
+            [result setKeepCallbackAsBool:TRUE];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        }];
+    } else {
+        result = [CDVPluginResult
+                  resultWithStatus:CDVCommandStatus_ERROR
+                  messageAsString:@"No suitable microphone connection found"];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-    }];
+    }
 }
 
 - (void) stopMeasurement:(CDVInvokedUrlCommand*)command
-{
-    myAsyncCallbackId = nil;
-    
+{    
     [[MicrophoneSignalProcess getInstance] stopAnalyze];
 //    [[MicrophoneSignalProcess getInstance] close];
     
@@ -264,6 +273,7 @@ static NSString* myAsyncCallbackId = nil;
                                resultWithStatus:CDVCommandStatus_OK];
     
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    myAsyncCallbackId = nil;
 }
 
 @end
