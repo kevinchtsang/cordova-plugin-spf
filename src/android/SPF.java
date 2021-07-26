@@ -74,7 +74,6 @@ public class SPF extends CordovaPlugin {
                 } else if (state == BluetoothHeadset.STATE_CONNECTED) {
                     Log.d("SPF-Connection", "Bluetooth connected (headset)");
                     btConnected = true;
-                    Log.d("SPF-Connection", "btConnected = " + btConnected);
                 }
             } else if (action.equals(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED)) {
                 final int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
@@ -85,9 +84,7 @@ public class SPF extends CordovaPlugin {
                     Log.d("SPF-Connection", "Bluetooth connected (SCO)");
                     try {
                         Thread.sleep(1000);
-                    }
-                    catch(InterruptedException ex)
-                    {
+                    } catch(InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     }
                     mAudioManager.startBluetoothSco();
@@ -100,48 +97,13 @@ public class SPF extends CordovaPlugin {
         };
     };
 
-    private boolean btConnection() {
-        final Activity activity = this.cordova.getActivity();
-        final Context context = activity.getApplicationContext();
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
-        // try to connect bluetooth
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED));
-
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED));
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
-
-        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
-
-        // Listen for headset plug/unplug
-        context.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context p0, Intent intent) {
-                final String action = intent.getAction();
-                if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
-                    final int headphones = intent.getIntExtra("state", -1);
-                    final int mic = intent.getIntExtra("microphone", -1);
-                    // Log.d("SPF-Connection", "state: " + headphones);
-                    // Log.d("SPF-Connection", "microphone: " + mic);
-                    headsetMic = headphones > 0 && mic > 0;
-                }
-            }
-        }, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
-
+    private void setBTConnection() {
         if (btConnected && isBluetoothHeadsetConnected()) {
             Log.d("SPF-Connection", "Connected Bluetooth mic");
 
             mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             mAudioManager.startBluetoothSco();
             mAudioManager.setBluetoothScoOn(true);
-
-            return true;
         } else if (headsetMic) {
             Log.d("SPF-Connection", "Connected Headset mic");
 
@@ -149,8 +111,6 @@ public class SPF extends CordovaPlugin {
             mAudioManager.stopBluetoothSco();
             mAudioManager.setBluetoothScoOn(false);
             mAudioManager.setSpeakerphoneOn(false);
-
-            return true;
         } else {
             Log.d("SPF-Connection", "no connection");
 
@@ -159,8 +119,6 @@ public class SPF extends CordovaPlugin {
             mAudioManager.stopBluetoothSco();
             mAudioManager.setBluetoothScoOn(false);
             mAudioManager.setSpeakerphoneOn(true);
-
-            return false;
         }
     };
 
@@ -179,7 +137,35 @@ public class SPF extends CordovaPlugin {
         final Context context = activity.getApplicationContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-        this.btConnection();
+        // register to microphone changes
+
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
+        context.registerReceiver((BroadcastReceiver) blueReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+
+        // Listen for headset plug/unplug
+        context.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context p0, Intent intent) {
+                final String action = intent.getAction();
+                if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+                    final int headphones = intent.getIntExtra("state", -1);
+                    final int mic = intent.getIntExtra("microphone", -1);
+                    // Log.d("SPF-Connection", "state: " + headphones);
+                    // Log.d("SPF-Connection", "microphone: " + mic);
+                    headsetMic = headphones > 0 && mic > 0;
+                }
+            }
+        }, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+
+        this.setBTConnection();
     }
 
     @Override
@@ -206,7 +192,7 @@ public class SPF extends CordovaPlugin {
                             }
                         });
                     } else {
-                        callbackContext.error("Error in Calibration: no connection found");
+                        callbackContext.error("Error in Calibration: no connected device found");
                     }
                 }
             });
