@@ -2,12 +2,11 @@ package kevinchtsang.cordova.spf;
 
 import android.Manifest;
 import android.bluetooth.*;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.os.Build;
 import android.util.Log;
 
 import com.synthnet.spf.MicrophoneSignalProcess;
@@ -16,7 +15,6 @@ import com.synthnet.spf.SignalProcess;
 
 import org.apache.cordova.*;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SPF extends CordovaPlugin {
@@ -26,27 +24,25 @@ public class SPF extends CordovaPlugin {
 
     private CallbackContext authReqCallbackCtx;
 
-    private static boolean headsetMic;
     public AudioManager mAudioManager;
 
-    // what is the purpose of this function?
-    // wouldn't it be better if we called it everytime we call execute() ?
-    private void setBTConnection() {
+    // sets the right microphone connection
+    private void setMicConnection() {
         if (isBluetoothHeadsetConnected()) {
-            Log.d("SPF-Connection", "Connected Bluetooth mic");
+            Log.d(TAG, "Connected Bluetooth mic");
 
             mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             mAudioManager.startBluetoothSco();
             mAudioManager.setBluetoothScoOn(true);
-        } else if (headsetMic) {
-            Log.d("SPF-Connection", "Connected Headset mic");
+        } else if (isWiredHeadsetConnected()) {
+            Log.d(TAG, "Connected Headset mic");
 
             mAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             mAudioManager.stopBluetoothSco();
             mAudioManager.setBluetoothScoOn(false);
             mAudioManager.setSpeakerphoneOn(false);
         } else {
-            Log.d("SPF-Connection", "no connection");
+            Log.d(TAG, "no connection");
 
             // reset to normal phone settings
             mAudioManager.setMode(AudioManager.MODE_NORMAL);
@@ -58,8 +54,30 @@ public class SPF extends CordovaPlugin {
 
     private boolean isBluetoothHeadsetConnected() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (BluetoothProfile.STATE_CONNECTED == adapter.getProfileConnectionState(BluetoothProfile.HEADSET)) {
+
+        if (BluetoothProfile.STATE_CONNECTED == adapter.getProfileConnectionState(BluetoothProfile.HEADSET) ||
+                BluetoothProfile.STATE_CONNECTED ==  adapter.getProfileConnectionState(BluetoothProfile.A2DP)) {
             return true;
+        }
+        return false;
+    }
+
+    private boolean isWiredHeadsetConnected() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(TAG, "onCreate:::: BuildVersion>=M");
+            AudioDeviceInfo[] mAudioDeviceInfos = mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
+            Log.d(TAG, "onCreate:::: got AudioDeviceInfo[]");
+            for (int i = 0; i < mAudioDeviceInfos.length; i++) {
+                if (mAudioDeviceInfos[i].getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET) {
+                    Log.d(TAG, "onCreate:::: \n\nfind wiredHeadset!!!\n\n");
+                    return true;
+                } else {
+                    Log.d(TAG, "onCreate:::: find device type: " + mAudioDeviceInfos[i].getType() + ", id: " + mAudioDeviceInfos[i].getProductName());
+                }
+            }
+        } else {
+            Log.d(TAG, "onCreate:::: BuildVersion<M");
+            return mAudioManager.isWiredHeadsetOn();
         }
         return false;
     }
@@ -69,22 +87,6 @@ public class SPF extends CordovaPlugin {
         super.initialize(cordova, webView);
         final Context context = cordova.getActivity().getApplicationContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
-        // Listen for headset plug/unplug
-        context.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context p0, Intent intent) {
-                final String action = intent.getAction();
-                if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
-                    final int headphones = intent.getIntExtra("state", -1);
-                    final int mic = intent.getIntExtra("microphone", -1);
-                    Log.d("SPF-Connection", "state: " + headphones + ", microphone: " + mic);
-                    headsetMic = headphones > 0 && mic > 0;
-                }
-            }
-        }, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
-
-        this.setBTConnection();
     }
 
     @Override
@@ -98,22 +100,18 @@ public class SPF extends CordovaPlugin {
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.MODIFY_AUDIO_SETTINGS});
         } else if (action.equals("SPFstartCalibration")) {
-            if(isBluetoothHeadsetConnected() || headsetMic) {
+            if(isBluetoothHeadsetConnected() || isWiredHeadsetConnected()) {
+                setMicConnection();
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("SPF-Connection", "isBluetoothHeadsetConnected=" + isBluetoothHeadsetConnected() + ", headsetMic=" + headsetMic);
-                        if(isBluetoothHeadsetConnected() || headsetMic){
-                            MicrophoneSignalProcess.getInstance().startCalibration(new SignalProcess.OnCalibrated() {
-                                @Override
-                                public void onCalibrated(int status) {
-                                    MicrophoneSignalProcess.getInstance().stopCalibration();
-                                    callbackContext.success();
-                                }
-                            });
-                        } else {
-                            callbackContext.error("Error in Calibration: no connected device found");
-                        }
+                        MicrophoneSignalProcess.getInstance().startCalibration(new SignalProcess.OnCalibrated() {
+                            @Override
+                            public void onCalibrated(int status) {
+                                MicrophoneSignalProcess.getInstance().stopCalibration();
+                                callbackContext.success();
+                            }
+                        });
                     }
                 });
             } else {
@@ -123,7 +121,8 @@ public class SPF extends CordovaPlugin {
             MicrophoneSignalProcess.getInstance().stopCalibration();
             callbackContext.success();
         } else if (action.equals("startMeasurement")) {
-            if(isBluetoothHeadsetConnected() || headsetMic) {
+            if(isBluetoothHeadsetConnected() || isWiredHeadsetConnected()) {
+                setMicConnection();
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -131,7 +130,7 @@ public class SPF extends CordovaPlugin {
                                 new SignalProcess.OnPeakFound() {
                                     @Override
                                     public void onResult(int peakFlowRate) {
-                                        Log.d("SPF-Lib", "Peak Flow Rate: " + peakFlowRate);
+                                        Log.d(TAG, "Peak Flow Rate: " + peakFlowRate);
                                         MicrophoneSignalProcess.getInstance().stopAnalyze();
                                         try {
                                             JSONObject retval = new JSONObject();
@@ -152,7 +151,7 @@ public class SPF extends CordovaPlugin {
                                         // If there was no actual blow but the blade stops again we get back to the listening mode. The callback is invoked again but this time previousMode is MODE_UP and mode is MODE_LISTEN.
                                         // If there was a blow and a peak flow value can be determined then the up mode transitions to tracking mode and when the blade stops, tracking mode transitions to listening mode.
                                         // Note, that it's very important to wait for the blade to stop (getting back to listening mode) before starting a new blow.
-                                        Log.d("SPF-Lib", "Processing has transitioned from " + previousMode +
+                                        Log.d(TAG, "Processing has transitioned from " + previousMode +
                                                 " to " + mode);
                                         try {
                                             JSONObject retval = new JSONObject();
