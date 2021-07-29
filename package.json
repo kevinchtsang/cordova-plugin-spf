@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-spf",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "A cordova plugin for SPF library",
     "cordova": {
         "id": "cordova-plugin-spf",
