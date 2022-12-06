@@ -6,7 +6,7 @@ repositories{
 }
 
 dependencies {
-    compile(name:'SPFLib-3.6.7', ext:'aar')
+    implementation(name:'SPFLib-3.6.7', ext:'aar')
 }
 
 android {
