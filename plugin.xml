@@ -47,7 +47,7 @@
     
     <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
       <key>NSMicrophoneUsageDescription</key>
-      <string>Peak Flow Meter Audio Connection</string>
+      <string>Microphone needed to read the smart peak flow meter</string>
     </config-file>
     
     <framework src="libstdc++.tbd" />
